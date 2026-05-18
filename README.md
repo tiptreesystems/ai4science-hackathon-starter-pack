@@ -5,8 +5,9 @@ This repository contains participant-facing starter materials.
 ## Contents
 
 - `starter-submission/`: a ready-to-zip Codabench research-agent submission.
-- `tracks/science_of_ai_ml/`: Science of AI / ML practice and validation task
-  packets, including visible task files, references, and scoring programs.
+- `tracks/`: public train and validation packets for Science of AI / ML,
+  Materials, and Bio, including visible task files plus local references and
+  scoring programs for starter-pack testing.
 - `scripts/eval_engine.py`: a Docker-based local evaluator that mirrors the
   Codabench `run.sh` contract on the `python:3.11-slim` worker image.
 
@@ -21,11 +22,23 @@ The zip root must contain `run.sh`.
 
 ## Available Tasks
 
-The starter pack includes these Science of AI / ML packets:
+The starter pack includes these public packets:
+
+Science of AI / ML:
 
 - `train_01`: Colored digit domain generalization.
 - `train_02`: Backdoor-robust digit classification.
 - `validation_01`: Synthetic treatment-effect estimation.
+
+Bio:
+
+- `train_01`: Enzyme-substrate activity prediction.
+- `validation_01`: Peptide-MHC class I binding affinity prediction.
+
+Materials:
+
+- `train_01`: Descriptor engineering for methane-conversion catalysts.
+- `validation_01`: Descriptor engineering for solid electrolytes.
 
 Each packet contains:
 
@@ -35,13 +48,13 @@ reference/   # Local answer data for this starter pack
 scoring/     # Local scoring program
 ```
 
-No `final_*` packets are included.
+Only the public packets listed above are included.
 
 ## Local Eval Engine
 
 Use the Docker eval engine before uploading. It runs the submission inside
 `python:3.11-slim`, with the task directory mounted read-only, then runs the
-task scorer against the generated `predictions.csv`.
+task scorer against the generated output file or files declared by `task.json`.
 
 Requirements:
 
@@ -54,10 +67,18 @@ Run one train task:
 python3 scripts/eval_engine.py --task train_01
 ```
 
-Run all Science of AI / ML train tasks:
+Run a specific track:
+
+```bash
+python3 scripts/eval_engine.py --track bio --task validation_01
+python3 scripts/eval_engine.py --track materials --task train_01
+```
+
+Run all train tasks in a track:
 
 ```bash
 python3 scripts/eval_engine.py --all-train
+python3 scripts/eval_engine.py --track bio --all-train
 ```
 
 Run the validation task:
@@ -85,11 +106,10 @@ The default starter submission reads secrets from
 and LiteLLM environment variables from your shell into the submission container,
 including `ANTHROPIC_API_KEY`, `ANTHROPIC_BASE_URL`, and `CLAUDE_MODEL`.
 
-Outputs, logs, and scores are written under `eval-runs/`, with one subdirectory
-per task. Check `logs/submission.log`, `logs/scoring.log`, and `result.json`
-when debugging.
+Outputs, logs, and scores are written under `eval-runs/`, grouped by
+`track/task`. Check `logs/submission.log`, `logs/scoring.log`, and
+`result.json` when debugging.
 
 If a submission works there, it is using the same `run.sh` contract and base
 worker image expected by Codabench. The local engine is still a simulator:
-server-side time limits, queue settings, and hidden final tasks are enforced by
-Codabench.
+server-side time limits and queue settings are enforced by Codabench.

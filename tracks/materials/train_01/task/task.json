@@ -1,0 +1,90 @@
+{
+  "task_id": "materials_drm_descriptor_engineering",
+  "track": "materials",
+  "title": "DRM Catalyst \u2014 Descriptor Engineering for Methane Conversion",
+  "problem_type": "feature_engineering_regression",
+  "metric": "r2",
+  "model": {
+    "estimator": "sklearn.ensemble.RandomForestRegressor",
+    "params": {
+      "n_estimators": 100,
+      "n_jobs": 1
+    },
+    "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "target_transform": "identity"
+  },
+  "target": {
+    "name": "CH4_conv_pct",
+    "description": "Observed methane conversion (percent of CH\u2084 consumed); used only by the scorer."
+  },
+  "input_files": {
+    "train": "data/train.csv",
+    "test": "data/test.csv"
+  },
+  "output": {
+    "files": [
+      "train_features.csv",
+      "test_features.csv"
+    ],
+    "format": "feature_matrix",
+    "key_column": "id",
+    "feature_columns": "Any number of finite-valued numeric columns; the two files must share the same feature columns in the same order."
+  },
+  "scoring": {
+    "program": "scoring",
+    "command": "python /app/program/score.py /app/input/res /app/input/ref /app/output",
+    "evaluation_mode": "hidden_reference_features",
+    "scores": [
+      {
+        "key": "score",
+        "title": "Score",
+        "sorting": "desc",
+        "primary": true
+      },
+      {
+        "key": "metric_value",
+        "title": "Mean R\u00b2",
+        "sorting": "desc"
+      },
+      {
+        "key": "improvement",
+        "title": "Improvement",
+        "sorting": "desc"
+      },
+      {
+        "key": "n_features",
+        "title": "Features",
+        "sorting": "asc"
+      }
+    ]
+  },
+  "feature_descriptions": {
+    "id": "Unique row identifier.",
+    "Li": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Al": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Ca": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "V": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Ni": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Nb": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Rh": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Ag": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Sn": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Cs": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Ba": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Ce": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Sm": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Hf": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Ir": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Au": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Bi": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "CH4_conv_pct": "Observed methane conversion (percent of CH\u2084 consumed); present in train rows only."
+  },
+  "domain_background": "Engineer chemical and materials-informatics descriptors for multi-metal catalysts operating under dry reforming of methane (DRM). The scorer fits a fixed RandomForestRegressor on your descriptors and rewards how much methane-conversion variance your features explain on a held-out set of compositions.",
+  "allowed_external_resources": "Public materials-informatics, cheminformatics, and machine-learning libraries (scikit-learn, matminer, pymatgen, RDKit, ASE, etc.) and public reference data (atomic-property tables, Materials Project records, OQMD, etc.) are allowed. DFT is permitted in principle but too slow for the hackathon timeline; prefer classical force fields, pre-trained universal ML force fields (MACE-MP-0, CHGNet, M3GNet, ALIGNN-FF), and semi-empirical methods (g-xTB, GFN-xTB) for any first-principles-style descriptors. Do not use hidden reference files or external labels for these specific compositions."
+}

@@ -1,0 +1,21 @@
+{
+  "task_id": "materials_drm_descriptor_engineering",
+  "metric": "r2",
+  "direction": "higher",
+  "baseline": 0.0,
+  "baseline_description": "R\u00b2 = 0 corresponds to predicting the train-set mean (no-skill predictor) in the relevant (linear or log10) space.",
+  "ideal": 1.0,
+  "rf_reference_score": 0.413,
+  "rf_reference_description": "RandomForestRegressor with sklearn defaults, 100 trees, averaged over 5 seeds, fit directly on the raw element mole-fraction / loading columns with no descriptor engineering. Reference baseline reported in the source materials_problems repository; not used directly by the scorer.",
+  "target_column": "CH4_conv_pct",
+  "rf_seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "rf_n_estimators": 100,
+  "n_train": 224,
+  "n_test": 64
+}

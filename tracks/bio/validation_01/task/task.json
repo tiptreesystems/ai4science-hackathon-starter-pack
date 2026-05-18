@@ -1,0 +1,55 @@
+{
+  "task_id": "bio_peptide_mhc_binding",
+  "track": "bio",
+  "title": "Peptide-MHC Class I Binding Affinity Prediction",
+  "problem_type": "regression",
+  "metric": "spearman",
+  "target": {
+    "name": "target",
+    "reference_column": "target",
+    "description": "Transformed MHC class I binding affinity in [0, 1] computed as 1 - log(IC50_nM)/log(50000); higher means tighter binding."
+  },
+  "input_files": {
+    "train": "data/train.csv",
+    "test": "data/test.csv"
+  },
+  "output": {
+    "file": "predictions.csv",
+    "columns": [
+      "id",
+      "prediction"
+    ]
+  },
+  "scoring": {
+    "program": "scoring",
+    "command": "python /app/program/score.py /app/input/res /app/input/ref /app/output",
+    "evaluation_mode": "hidden_reference_predictions",
+    "scores": [
+      {
+        "key": "score",
+        "title": "Score",
+        "sorting": "desc",
+        "primary": true
+      },
+      {
+        "key": "metric_value",
+        "title": "Spearman",
+        "sorting": "desc"
+      },
+      {
+        "key": "improvement",
+        "title": "Improvement",
+        "sorting": "desc"
+      }
+    ]
+  },
+  "feature_descriptions": {
+    "id": "Unique peptide-allele pair identifier.",
+    "peptide": "Nine-residue candidate peptide in one-letter amino-acid code.",
+    "allele": "HLA class I allele name in NetMHCpan-style four-digit form (e.g. HLA-A0201).",
+    "allele_pseudo_seq": "34-residue HLA pseudo-sequence (NetMHCpan convention) covering the peptide-binding groove. Shipped for convenience so participants do not need an external HLA lookup.",
+    "target": "Training label: transformed binding affinity 1 - log(IC50_nM)/log(50000), clipped to [0, 1]."
+  },
+  "domain_background": "Allele-cold MHC class I binding-affinity prediction derived from MHCflurry's curated IEDB export. The six held-out HLA alleles do not appear in training; each has at least one same-locus sibling allele in the training set so generalization across the binding groove is feasible.",
+  "allowed_external_resources": "Use public scientific databases, package documentation, and pretrained protein or peptide-MHC models. Do not use hidden labels or scorer files."
+}

@@ -1,0 +1,128 @@
+{
+  "task_id": "materials_obelix_descriptor_engineering_validation",
+  "track": "materials",
+  "title": "Solid Electrolytes \u2014 Descriptor Engineering (Validation Phase)",
+  "problem_type": "feature_engineering_regression",
+  "metric": "r2_log10",
+  "model": {
+    "estimator": "sklearn.ensemble.RandomForestRegressor",
+    "params": {
+      "n_estimators": 100,
+      "n_jobs": 1
+    },
+    "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "target_transform": "log10_clip(1e-20)"
+  },
+  "target": {
+    "name": "ionic_conductivity_S_cm",
+    "description": "Observed room-temperature ionic conductivity (S/cm); used only by the scorer."
+  },
+  "input_files": {
+    "train": "data/train.csv",
+    "test": "data/test.csv"
+  },
+  "output": {
+    "files": [
+      "train_features.csv",
+      "test_features.csv"
+    ],
+    "format": "feature_matrix",
+    "key_column": "id",
+    "feature_columns": "Any number of finite-valued numeric columns; the two files must share the same feature columns in the same order."
+  },
+  "scoring": {
+    "program": "scoring",
+    "command": "python /app/program/score.py /app/input/res /app/input/ref /app/output",
+    "evaluation_mode": "hidden_reference_features",
+    "scores": [
+      {
+        "key": "score",
+        "title": "Score",
+        "sorting": "desc",
+        "primary": true
+      },
+      {
+        "key": "metric_value",
+        "title": "Mean R\u00b2 (log10)",
+        "sorting": "desc"
+      },
+      {
+        "key": "improvement",
+        "title": "Improvement",
+        "sorting": "desc"
+      },
+      {
+        "key": "n_features",
+        "title": "Features",
+        "sorting": "asc"
+      }
+    ]
+  },
+  "feature_descriptions": {
+    "id": "Unique row identifier.",
+    "Ag": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Al": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "B": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Ba": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Bi": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Br": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "C": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Ca": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Cd": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Ce": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Cl": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Co": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Cr": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Cu": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Er": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "F": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Fe": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Ga": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Gd": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Ge": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "H": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Hf": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "I": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "In": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "K": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "La": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Li": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Lu": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Mg": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Mn": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Mo": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "N": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Na": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Nb": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Nd": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "O": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "P": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Pb": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Pr": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "S": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Sb": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Sc": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Se": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Si": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Sm": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Sn": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Sr": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Ta": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Te": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Ti": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "V": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "W": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Y": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Zn": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Zr": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "ionic_conductivity_S_cm": "Observed room-temperature ionic conductivity (S/cm); present in train rows only."
+  },
+  "domain_background": "Validation phase of the solid-electrolyte descriptor engineering task. Engineer chemical / structural descriptors; the scorer fits a fixed RandomForestRegressor on log10-conductivity and rewards orders-of-magnitude variance explained on held-out compositions.",
+  "allowed_external_resources": "Public materials-informatics, cheminformatics, and machine-learning libraries (scikit-learn, matminer, pymatgen, RDKit, ASE, etc.) and public reference data (atomic-property tables, Materials Project records, OQMD, etc.) are allowed. DFT is permitted in principle but too slow for the hackathon timeline; prefer classical force fields, pre-trained universal ML force fields (MACE-MP-0, CHGNet, M3GNet, ALIGNN-FF), and semi-empirical methods (g-xTB, GFN-xTB) for any first-principles-style descriptors. Do not use hidden reference files or external labels for these specific compositions."
+}

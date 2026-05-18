@@ -33,9 +33,11 @@ The runner installs the small Python dependency set in `requirements.txt`,
 stages the task in a writable workspace, extracts zip archives under `data/`,
 and runs Claude Code in headless mode with `claude --bare -p ...`. The research
 agent reads the task's `task.md` and `task.json`, solves the research task
-described there, and writes `predictions.csv`. The wrapper validates the
-declared output columns and test IDs before copying the file to the requested
-output path.
+described there, and writes the output file or files declared by `task.json`.
+Prediction tasks usually write `predictions.csv`; feature-engineering tasks may
+write task-specific files such as `train_features.csv` and `test_features.csv`.
+The wrapper validates the declared outputs before copying them to the requested
+output directory.
 
 Expected environment:
 

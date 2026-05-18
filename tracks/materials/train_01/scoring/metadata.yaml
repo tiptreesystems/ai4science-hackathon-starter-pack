@@ -1,0 +1,1 @@
+command: python /app/program/score.py /app/input/res /app/input/ref /app/output

@@ -1,0 +1,59 @@
+{
+  "task_id": "bio_enzyme_substrate_activity",
+  "track": "bio",
+  "title": "Enzyme-Substrate Activity Prediction",
+  "problem_type": "binary_classification",
+  "metric": "auprc",
+  "target": {
+    "name": "activity",
+    "reference_column": "target",
+    "description": "Binary indicator for whether a halogenase enzyme converts the substrate in NaBr."
+  },
+  "input_files": {
+    "train": "data/train.csv",
+    "test": "data/test.csv"
+  },
+  "output": {
+    "file": "predictions.csv",
+    "columns": [
+      "id",
+      "prediction"
+    ]
+  },
+  "scoring": {
+    "program": "scoring",
+    "command": "python /app/program/score.py /app/input/res /app/input/ref /app/output",
+    "evaluation_mode": "hidden_reference_predictions",
+    "scores": [
+      {
+        "key": "score",
+        "title": "Score",
+        "sorting": "desc",
+        "primary": true
+      },
+      {
+        "key": "metric_value",
+        "title": "AUPRC",
+        "sorting": "desc"
+      },
+      {
+        "key": "improvement",
+        "title": "Improvement",
+        "sorting": "desc"
+      },
+      {
+        "key": "positive_rate",
+        "title": "Positive Rate",
+        "sorting": "desc"
+      }
+    ]
+  },
+  "feature_descriptions": {
+    "id": "Unique enzyme-substrate pair identifier.",
+    "sequence": "Halogenase amino-acid sequence in one-letter code.",
+    "substrate": "Canonical SMILES string for the candidate substrate.",
+    "activity": "Training label: 1 if conversion activity was observed, else 0."
+  },
+  "domain_background": "Substrate-cold halogenase activity prediction. Test substrates are unseen during training, while test enzymes appear in the training set.",
+  "allowed_external_resources": "Use public scientific databases, package documentation, and pretrained biological or chemistry models. Do not use hidden labels or scorer files."
+}

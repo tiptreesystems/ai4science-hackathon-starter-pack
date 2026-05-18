@@ -64,6 +64,24 @@ def output_columns_from_task(task_config: dict[str, object]) -> list[str]:
     return [str(column) for column in columns]
 
 
+def output_files_from_task(task_config: dict[str, object]) -> list[str]:
+    output = task_config.get("output")
+    if not isinstance(output, dict):
+        return ["predictions.csv"]
+    files = output.get("files")
+    if isinstance(files, list) and files and all(isinstance(item, str) for item in files):
+        return [str(item) for item in files]
+    file_name = output.get("file")
+    if isinstance(file_name, str) and file_name:
+        return [file_name]
+    return ["predictions.csv"]
+
+
+def is_multi_file_output(task_config: dict[str, object]) -> bool:
+    output = task_config.get("output")
+    return isinstance(output, dict) and isinstance(output.get("files"), list)
+
+
 def validate_ids(rows: list[dict[str, str]], source: Path) -> list[str]:
     ids = [(row.get("id") or "").strip() for row in rows]
     if not ids:
@@ -98,6 +116,24 @@ def read_test_ids(task_dir: Path, task_config: dict[str, object]) -> list[str]:
     raise FileNotFoundError(
         "could not find sample_submission.csv or a test manifest with ids"
     )
+
+
+def read_input_ids(task_dir: Path, task_config: dict[str, object], key: str) -> list[str]:
+    input_files = task_config.get("input_files")
+    if isinstance(input_files, dict):
+        value = input_files.get(key)
+        if isinstance(value, str):
+            path = task_dir / value
+            if path.is_file():
+                fieldnames, rows = read_csv_rows(path)
+                if "id" not in fieldnames:
+                    raise ValueError(f"{path} must contain an id column")
+                return validate_ids(rows, path)
+    path = task_dir / "data" / f"{key}.csv"
+    fieldnames, rows = read_csv_rows(path)
+    if "id" not in fieldnames:
+        raise ValueError(f"{path} must contain an id column")
+    return validate_ids(rows, path)
 
 
 def is_finite_number(value: str) -> bool:
@@ -210,6 +246,81 @@ def validate_predictions(
             writer.writerow(predictions[row_id])
 
 
+def validate_feature_file(path: Path, expected_ids: list[str]) -> list[str]:
+    if not path.is_file():
+        raise ValueError(f"{path} was not created")
+
+    fieldnames, rows = read_csv_rows(path)
+    if not fieldnames or fieldnames[0] != "id":
+        raise ValueError(f"{path.name} must start with an id column")
+    feature_columns = fieldnames[1:]
+    if not feature_columns:
+        raise ValueError(f"{path.name} must contain at least one feature column")
+    if len(set(feature_columns)) != len(feature_columns):
+        raise ValueError(f"{path.name} contains duplicate feature columns")
+
+    seen: set[str] = set()
+    for row in rows:
+        if None in row:
+            raise ValueError(f"{path.name} contains rows with too many columns")
+        row_id = (row.get("id") or "").strip()
+        if not row_id:
+            raise ValueError(f"{path.name} contains an empty id")
+        if row_id in seen:
+            raise ValueError(f"{path.name} contains duplicate id {row_id!r}")
+        seen.add(row_id)
+        for column in feature_columns:
+            value = (row.get(column) or "").strip()
+            if not is_finite_number(value):
+                raise ValueError(
+                    f"{path.name} column {column!r} must be finite numeric for id {row_id!r}"
+                )
+
+    expected = set(expected_ids)
+    missing = sorted(expected - seen)
+    extra = sorted(seen - expected)
+    if missing:
+        raise ValueError(f"{path.name} is missing {len(missing)} ids; first missing id: {missing[0]}")
+    if extra:
+        raise ValueError(f"{path.name} has {len(extra)} unexpected ids; first extra id: {extra[0]}")
+    return feature_columns
+
+
+def find_output_candidate(workspace_dir: Path, output_dir: Path, rel_path: str) -> Path:
+    for base in (workspace_dir, output_dir):
+        candidate = base / rel_path
+        if candidate.is_file():
+            return candidate
+    return workspace_dir / rel_path
+
+
+def validate_feature_outputs(
+    *,
+    workspace_task_dir: Path,
+    workspace_dir: Path,
+    output_dir: Path,
+    task_config: dict[str, object],
+    output_files: list[str],
+) -> None:
+    if len(output_files) != 2:
+        raise ValueError("multi-file feature tasks must declare exactly two output files")
+    train_ids = read_input_ids(workspace_task_dir, task_config, "train")
+    test_ids = read_input_ids(workspace_task_dir, task_config, "test")
+    train_path = find_output_candidate(workspace_dir, output_dir, output_files[0])
+    test_path = find_output_candidate(workspace_dir, output_dir, output_files[1])
+    train_columns = validate_feature_file(train_path, train_ids)
+    test_columns = validate_feature_file(test_path, test_ids)
+    if train_columns != test_columns:
+        raise ValueError(
+            f"{output_files[0]} and {output_files[1]} must share the same feature columns"
+        )
+    for source, rel_path in ((train_path, output_files[0]), (test_path, output_files[1])):
+        destination = output_dir / rel_path
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        if source.resolve() != destination.resolve():
+            shutil.copyfile(source, destination)
+
+
 def build_prompt(
     template_path: Path,
     *,
@@ -217,6 +328,9 @@ def build_prompt(
     workspace_dir: Path,
     workspace_task_dir: Path,
     agent_predictions: Path,
+    output_dir: Path,
+    required_outputs: str,
+    deliverable_instructions: str,
     log_path: Path,
 ) -> str:
     template = template_path.read_text(encoding="utf-8")
@@ -225,6 +339,9 @@ def build_prompt(
         workspace_dir=workspace_dir,
         workspace_task_dir=workspace_task_dir,
         agent_predictions=agent_predictions,
+        output_dir=output_dir,
+        required_outputs=required_outputs,
+        deliverable_instructions=deliverable_instructions,
         log_path=log_path,
     )
 
@@ -295,7 +412,30 @@ def main() -> int:
     workspace_dir.mkdir(parents=True)
 
     copy_task(task_dir, workspace_task_dir)
-    expected_columns, expected_ids, numeric_columns = read_output_contract(workspace_task_dir)
+    task_config = read_task_config(workspace_task_dir)
+    output_files = output_files_from_task(task_config)
+    multi_file_output = is_multi_file_output(task_config)
+    if multi_file_output:
+        required_outputs = "\n".join(f"- `{name}`" for name in output_files)
+        deliverable_instructions = (
+            "Create the required output files listed above in the writable "
+            f"workspace or in `{output_dir}`. Follow `task.md` exactly for each "
+            "file's columns, IDs, and numeric feature requirements. When the "
+            "files are written, stop."
+        )
+        expected_columns: list[str] = []
+        expected_ids: list[str] = []
+        numeric_columns: set[str] = set()
+    else:
+        expected_columns, expected_ids, numeric_columns = read_output_contract(workspace_task_dir)
+        required_outputs = f"- `{agent_predictions}`"
+        deliverable_instructions = (
+            f"Create `{agent_predictions}` with exactly the columns declared by "
+            "`sample_submission.csv` and `task.json`, exactly the same test IDs "
+            "as the sample submission or test manifest, and no extra rows. Do "
+            "not output metrics or logs in the output CSV. When the CSV is "
+            "written, stop."
+        )
 
     prompt = build_prompt(
         submission_dir / "agent_prompt.md",
@@ -303,27 +443,39 @@ def main() -> int:
         workspace_dir=workspace_dir,
         workspace_task_dir=workspace_task_dir,
         agent_predictions=agent_predictions,
+        output_dir=output_dir,
+        required_outputs=required_outputs,
+        deliverable_instructions=deliverable_instructions,
         log_path=log_path,
     )
     (workspace_dir / "CLAUDE_TASK.md").write_text(prompt + "\n", encoding="utf-8")
 
     try:
         claude_returncode = run_claude(prompt, workspace_dir, log_path)
-        candidate = agent_predictions
-        if not candidate.is_file() and output_path.is_file():
-            candidate = output_path
-        validate_predictions(
-            candidate,
-            expected_columns=expected_columns,
-            expected_ids=expected_ids,
-            numeric_columns=numeric_columns,
-        )
-        if candidate != output_path:
-            shutil.copyfile(candidate, output_path)
+        if multi_file_output:
+            validate_feature_outputs(
+                workspace_task_dir=workspace_task_dir,
+                workspace_dir=workspace_dir,
+                output_dir=output_dir,
+                task_config=task_config,
+                output_files=output_files,
+            )
+        else:
+            candidate = agent_predictions
+            if not candidate.is_file() and output_path.is_file():
+                candidate = output_path
+            validate_predictions(
+                candidate,
+                expected_columns=expected_columns,
+                expected_ids=expected_ids,
+                numeric_columns=numeric_columns,
+            )
+            if candidate != output_path:
+                shutil.copyfile(candidate, output_path)
         if claude_returncode != 0:
             (output_dir / "claude_nonzero_exit.txt").write_text(
                 f"Claude Code exited with status {claude_returncode}, "
-                "but a valid predictions.csv was produced.\n"
+                "but valid output files were produced.\n"
                 f"See {log_path}\n",
                 encoding="utf-8",
             )

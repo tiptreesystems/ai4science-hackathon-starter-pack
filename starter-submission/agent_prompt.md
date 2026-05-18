@@ -7,7 +7,9 @@ Paths:
 - Provided task directory: {task_dir}
 - Writable copy of the task directory: {workspace_task_dir}
 - Writable workspace: {workspace_dir}
-- Required final CSV: {agent_predictions}
+- Output directory mounted for submission results: {output_dir}
+- Required output file(s):
+{required_outputs}
 - Claude run log: {log_path}
 
 The provided task directory may be read-only. Use the writable copy of the task
@@ -20,18 +22,18 @@ Your research task is specified by the copied task's `task.md` file:
 
 Use that file as the source of truth for the scientific problem, target, metric,
 data files, and output requirements. Also inspect `task.json`, the files under
-`data/`, and `sample_submission.csv` before choosing an approach. Treat the task
-as an unknown research problem: infer the right modeling strategy from the task
-description and visible data rather than assuming a fixed task type.
+`data/`, and any sample output files before choosing an approach. Treat the
+task as an unknown research problem: infer the right modeling strategy from the
+task description and visible data rather than assuming a fixed task type.
 
 Conduct the work as a compact end-to-end research run:
 
-- Identify the prediction target, allowed inputs, output columns, and expected
-  test IDs from the task files.
+- Identify the target, allowed inputs, required output file names, output
+  columns, and expected IDs from the task files.
 - Build an appropriate solution for the task type described in `task.md`
   (for example classification, tabular modeling, image modeling, or treatment
   effect estimation).
-- Write one complete prediction row for every required test ID.
+- Write the required output file or files exactly as specified by the task.
 
 Important constraints:
 
@@ -47,7 +49,4 @@ Important constraints:
 
 Deliverable:
 
-Create `{agent_predictions}` with exactly the columns declared by
-`sample_submission.csv` and `task.json`, exactly the same test IDs as the sample
-submission or test manifest, and no extra rows. Do not output metrics or logs in
-the final CSV. When the CSV is written, stop.
+{deliverable_instructions}

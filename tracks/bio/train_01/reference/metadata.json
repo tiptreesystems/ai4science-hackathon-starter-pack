@@ -1,0 +1,14 @@
+{
+  "evaluation_mode": "bio_enzyme_substrate_auprc",
+  "metric": "auprc",
+  "target": "target",
+  "baseline": 0.37436003989829125,
+  "ideal": 1.0,
+  "direction": "higher",
+  "baseline_description": "ESM2-t6-8M mean-pooled protein embedding plus Morgan fingerprint with logistic regression.",
+  "n_train": 1932,
+  "n_test": 672,
+  "positive_rate": 0.12351190476190477,
+  "split": "substrate_cold",
+  "source_problem": "bio_problems/enzyme_substrate"
+}

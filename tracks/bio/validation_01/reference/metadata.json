@@ -1,0 +1,23 @@
+{
+  "evaluation_mode": "bio_peptide_mhc_spearman",
+  "metric": "spearman",
+  "target": "target",
+  "baseline": 0.6124454609459612,
+  "ideal": 1.0,
+  "direction": "higher",
+  "baseline_description": "BLOSUM62-encoded peptide (9x20) concatenated with BLOSUM62-encoded HLA pseudo-sequence (34x20), 2-layer MLP (256, 128) with ReLU and dropout, trained with Adam on MSE for 12 epochs at batch 1024. Mean Spearman across 3 seeds.",
+  "n_train": 49357,
+  "n_test": 12676,
+  "held_out_alleles": [
+    "HLA-A0203",
+    "HLA-A0301",
+    "HLA-A2402",
+    "HLA-B0702",
+    "HLA-B1501",
+    "HLA-B5701"
+  ],
+  "split": "allele_cold",
+  "source_problem": "bio_problems/peptide_mhc",
+  "source_dataset": "MHCflurry data_curated.20231023 (curated_training_data.affinity.csv) derived from IEDB; HLA pseudo-sequences from MHCflurry class1_pseudosequences.csv (NetMHCpan convention).",
+  "target_transform": "1 - log(IC50_nM) / log(50000), clipped to [0, 1]"
+}

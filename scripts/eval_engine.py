@@ -23,6 +23,12 @@ from pathlib import Path
 
 
 DEFAULT_IMAGE = "python:3.11-slim"
+DEFAULT_TRACK = "science_of_ai_ml"
+TRACK_ROOTS = {
+    "bio": Path("tracks/bio"),
+    "materials": Path("tracks/materials"),
+    "science_of_ai_ml": Path("tracks/science_of_ai_ml"),
+}
 DEFAULT_PASS_ENV = (
     "ANTHROPIC_API_KEY",
     "ANTHROPIC_BASE_URL",
@@ -65,8 +71,8 @@ def parse_args() -> argparse.Namespace:
         action="append",
         default=[],
         help=(
-            "Task packet to run. Accepts train_01, train_02, validation_01, or "
-            "a path to a packet root. May be repeated."
+            "Task packet to run, for example train_01 or validation_01. A path "
+            "to a packet root is also accepted. May be repeated."
         ),
     )
     parser.add_argument(
@@ -75,10 +81,16 @@ def parse_args() -> argparse.Namespace:
         help="Run every train_* packet under --track-root.",
     )
     parser.add_argument(
+        "--track",
+        choices=sorted(TRACK_ROOTS),
+        default=DEFAULT_TRACK,
+        help="Track to run when --task is a packet name.",
+    )
+    parser.add_argument(
         "--track-root",
         type=Path,
-        default=Path("tracks/science_of_ai_ml"),
-        help="Directory containing Science of AI / ML task packets.",
+        default=None,
+        help="Directory containing task packets. Overrides --track.",
     )
     parser.add_argument(
         "--work-dir",
@@ -151,7 +163,7 @@ def resolve_tasks(track_root: Path, task_args: list[str], all_train: bool) -> li
     if all_train:
         task_args.extend(path.name for path in sorted(track_root.glob("train_*")) if path.is_dir())
     if not task_args:
-        raise ValueError("provide --task train_01, --task train_02, or --all-train")
+        raise ValueError("provide --task train_01, --task validation_01, or --all-train")
 
     tasks: list[Path] = []
     seen: set[Path] = set()
@@ -166,10 +178,25 @@ def resolve_tasks(track_root: Path, task_args: list[str], all_train: bool) -> li
         for required in ("task/task.json", "reference/answers.csv", "scoring/score.py"):
             if not (candidate / required).is_file():
                 raise FileNotFoundError(f"{candidate} is missing {required}")
-        if candidate.name.startswith("final_"):
-            raise ValueError("local starter-pack eval engine must not run final_* packets")
         tasks.append(candidate)
     return tasks
+
+
+def task_output_files(task_packet: Path) -> list[str]:
+    task_json = task_packet / "task" / "task.json"
+    if not task_json.is_file():
+        return ["predictions.csv"]
+    payload = json.loads(task_json.read_text(encoding="utf-8"))
+    output = payload.get("output") if isinstance(payload, dict) else None
+    if not isinstance(output, dict):
+        return ["predictions.csv"]
+    files = output.get("files")
+    if isinstance(files, list) and files and all(isinstance(item, str) for item in files):
+        return [str(item) for item in files]
+    file_name = output.get("file")
+    if isinstance(file_name, str) and file_name:
+        return [file_name]
+    return ["predictions.csv"]
 
 
 def docker_env_args(explicit: list[str], pass_env: list[str]) -> list[str]:
@@ -238,7 +265,7 @@ def run_submission_container(
     log_path: Path,
     env_args: list[str],
 ) -> int:
-    name = f"ai4science-submission-{task_packet.name}-{os.getpid()}"
+    name = f"ai4science-submission-{task_packet.parent.name}-{task_packet.name}-{os.getpid()}"
     cmd = [
         "docker",
         "run",
@@ -289,7 +316,7 @@ def run_scoring_container(
     score_dir: Path,
     log_path: Path,
 ) -> int:
-    name = f"ai4science-scoring-{task_packet.name}-{os.getpid()}"
+    name = f"ai4science-scoring-{task_packet.parent.name}-{task_packet.name}-{os.getpid()}"
     cmd = [
         "docker",
         "run",
@@ -340,7 +367,9 @@ def run_task(
     timeout: int,
     env_args: list[str],
 ) -> dict[str, object]:
-    task_work = work_dir / task_packet.name
+    track_name = task_packet.parent.name
+    task_name = task_packet.name
+    task_work = work_dir / track_name / task_name
     submission_dir = task_work / "submission"
     output_dir = task_work / "submission_output"
     score_dir = task_work / "score_output"
@@ -362,8 +391,9 @@ def run_task(
 
     scoring_status: int | None = None
     scores: object | None = None
-    predictions_path = output_dir / "predictions.csv"
-    if submission_status == 0 and (output_dir / "predictions.csv").is_file():
+    expected_outputs = task_output_files(task_packet)
+    outputs_present = all((output_dir / rel_path).is_file() for rel_path in expected_outputs)
+    if submission_status == 0 and outputs_present:
         scoring_status = run_scoring_container(
             image=image,
             network=network,
@@ -377,9 +407,10 @@ def run_task(
         if scores_path.is_file():
             scores = read_json(scores_path)
 
-    success = submission_status == 0 and predictions_path.is_file() and scoring_status == 0
+    success = submission_status == 0 and outputs_present and scoring_status == 0
     result = {
-        "task": task_packet.name,
+        "task": f"{track_name}/{task_name}",
+        "expected_outputs": expected_outputs,
         "success": success,
         "submission_status": submission_status,
         "scoring_status": scoring_status,
@@ -396,7 +427,8 @@ def main() -> int:
     args = parse_args()
     root = repo_root()
     submission = resolve_path(args.submission, root)
-    track_root = resolve_path(args.track_root, root)
+    track_root_arg = args.track_root or TRACK_ROOTS[args.track]
+    track_root = resolve_path(track_root_arg, root)
     tasks = resolve_tasks(track_root, list(args.task), args.all_train)
     work_dir = (
         resolve_path(args.work_dir, Path.cwd())
