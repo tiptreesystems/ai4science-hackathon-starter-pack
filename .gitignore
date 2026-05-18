@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+.DS_Store
+
+*.zip
+predictions.csv
+claude_code.log
+baseline_error.txt
+claude_nonzero_exit.txt
+
+.baseline-venv/
+.nodejs/
+.npm-global/
+.pip-cache/
+claude_science_ai_workspace/
+eval-runs/
+.eval-runs/

@@ -1,0 +1,13 @@
+{
+  "baseline": 0.12565874607587824,
+  "baseline_description": "PEHE of a constant treatment-effect predictor at the hidden reference ATE; removes credit for only matching the average effect.",
+  "dataset": "synthetic_observational_model_intervention",
+  "direction": "lower",
+  "evaluation_mode": "causality_effect_estimation",
+  "ideal": 0.0,
+  "metric": "pehe",
+  "primary_metric": "pehe",
+  "reference_rows": 240,
+  "secondary_metric": "abs_pct_error_of_ate",
+  "task_id": "scienceai_synthetic_cate_estimation"
+}
