@@ -1,12 +1,26 @@
 # AI4Science Research Agent Starter Submission
 
-This directory is a starter Codabench submission. Zip this directory to create a
-submission; the zip root must contain `run.sh`.
+This directory is a starter Codabench submission. The submitted zip must contain
+`run.sh` directly at the zip root.
+
+Do not zip the enclosing `starter-submission/` folder itself. A zip whose
+contents start with `starter-submission/run.sh` will fail because Codabench only
+looks for `run.sh` at the archive root.
 
 ```bash
 # From the starter-pack repository root:
 cd starter-submission
 zip -r ../ai4science-research-agent-starter-submission.zip .
+```
+
+After packaging, this should be true:
+
+```text
+run.sh
+README.md
+requirements.txt
+agent_prompt.md
+scripts/run_claude_agent.py
 ```
 
 Codabench invokes:
