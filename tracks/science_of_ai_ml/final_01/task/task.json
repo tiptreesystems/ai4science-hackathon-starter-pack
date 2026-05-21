@@ -1,0 +1,43 @@
+{
+  "task_id": "scienceai_tabular_fair_decisions",
+  "track": "science_of_ai_ml",
+  "title": "Fair Tabular Binary Classification",
+  "problem_type": "binary_classification",
+  "metric": "abs_aod",
+  "target": {
+    "name": "label",
+    "description": "Binary decision label for tabular examples."
+  },
+  "input_files": {
+    "train": "data/train.csv",
+    "test": "data/test.csv"
+  },
+  "output": {
+    "file": "predictions.csv",
+    "columns": ["id", "prediction"]
+  },
+  "scoring": {
+    "program": "scoring",
+    "command": "python /app/program/score.py /app/input/res /app/input/ref /app/output",
+    "evaluation_mode": "hidden_reference_predictions",
+    "scores": [
+      {"key": "score", "title": "Score", "sorting": "desc", "primary": true},
+      {"key": "metric_value", "title": "Abs AOD", "sorting": "asc"},
+      {"key": "accuracy", "title": "Accuracy", "sorting": "desc"}
+    ]
+  },
+  "feature_descriptions": {
+    "age_band": "Coarse age bin.",
+    "work_type": "Coarse employment category.",
+    "education_level": "Education level encoded as an integer.",
+    "role_type": "Coarse occupational role category.",
+    "household_type": "Coarse household relationship category.",
+    "capital_gain_band": "Coarse capital-gain bin.",
+    "capital_loss_band": "Coarse capital-loss bin.",
+    "weekly_hours_band": "Coarse weekly work-hours bin.",
+    "region_type": "Coarse place-of-origin category.",
+    "protected_group": "Protected-group attribute used by the fairness metric."
+  },
+  "domain_background": "Submit binary decisions for tabular rows. The scorer computes absolute average-odds difference and applies an accuracy utility guard to the primary score.",
+  "allowed_external_resources": "Use public fairness, binary-classification, and package documentation. Do not use hidden reference files, external tabular datasets, or external labels."
+}

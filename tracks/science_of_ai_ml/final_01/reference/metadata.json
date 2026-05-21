@@ -1,0 +1,66 @@
+{
+  "baseline": 0.15,
+  "baseline_accuracy": 1.0,
+  "baseline_description": "Reference unmitigated absolute average-odds-difference level used for normalized scoring.",
+  "dataset": "adult_style_fairness_stratified_5k",
+  "direction": "lower",
+  "evaluation_mode": "fairness_abs_aod",
+  "generation_script": "scripts/build_science_ai_final01_fairness.py",
+  "ideal": 0.0,
+  "metric": "abs_aod",
+  "privileged_group": "group_b",
+  "reference_rows": 2000,
+  "score_utility": "accuracy_gate",
+  "source_dataset": "UCI Adult Census Income",
+  "source_files": {
+    "adult.data": "https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data",
+    "adult.test": "https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.test"
+  },
+  "split_summary": {
+    "hidden_test": {
+      "groups": {
+        "group_a": {
+          "negatives": 700,
+          "positive_rate": 0.125,
+          "positives": 100,
+          "rows": 800
+        },
+        "group_b": {
+          "negatives": 800,
+          "positive_rate": 0.3333333333333333,
+          "positives": 400,
+          "rows": 1200
+        }
+      },
+      "negatives": 1500,
+      "positive_rate": 0.25,
+      "positives": 500,
+      "rows": 2000
+    },
+    "train": {
+      "groups": {
+        "group_a": {
+          "negatives": 1050,
+          "positive_rate": 0.125,
+          "positives": 150,
+          "rows": 1200
+        },
+        "group_b": {
+          "negatives": 1200,
+          "positive_rate": 0.3333333333333333,
+          "positives": 600,
+          "rows": 1800
+        }
+      },
+      "negatives": 2250,
+      "positive_rate": 0.25,
+      "positives": 750,
+      "rows": 3000
+    }
+  },
+  "task_id": "scienceai_tabular_fair_decisions",
+  "train_rows": 3000,
+  "unprivileged_group": "group_a",
+  "utility_floor": 0.75,
+  "utility_floor_description": "Hidden majority-class accuracy floor; constant all-negative predictions have zero utility."
+}

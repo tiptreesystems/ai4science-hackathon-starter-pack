@@ -5,9 +5,9 @@ This repository contains participant-facing starter materials.
 ## Contents
 
 - `starter-submission/`: a ready-to-zip Codabench research-agent submission.
-- `tracks/`: public train and validation packets for Science of AI / ML,
-  Materials, and Bio, including visible task files plus local references and
-  scoring programs for starter-pack testing.
+- `tracks/`: released task packets for Science of AI / ML, Materials, and
+  Bio, including visible task files plus local references and scoring programs
+  for starter-pack testing.
 - `scripts/eval_engine.py`: a Docker-based local evaluator that mirrors the
   Codabench `run.sh` contract on the `python:3.11-slim` worker image.
 
@@ -22,23 +22,26 @@ The zip root must contain `run.sh`.
 
 ## Available Tasks
 
-The starter pack includes these public packets:
+The starter pack includes these released packets:
 
 Science of AI / ML:
 
 - `train_01`: Colored digit domain generalization.
 - `train_02`: Backdoor-robust digit classification.
 - `validation_01`: Synthetic treatment-effect estimation.
+- `final_01`: Fair tabular binary classification.
 
 Bio:
 
 - `train_01`: Enzyme-substrate activity prediction.
 - `validation_01`: Peptide-MHC class I binding affinity prediction.
+- `final_01`: Protein thermostability mutation prediction.
 
 Materials:
 
 - `train_01`: Descriptor engineering for methane-conversion catalysts.
 - `validation_01`: Descriptor engineering for solid electrolytes.
+- `final_01`: Descriptor engineering for CO2RR electrocatalysts.
 
 Each packet contains:
 
@@ -48,7 +51,7 @@ reference/   # Local answer data for this starter pack
 scoring/     # Local scoring program
 ```
 
-Only the public packets listed above are included.
+All released hackathon packets are included.
 
 ## Local Eval Engine
 
@@ -85,6 +88,12 @@ Run the validation task:
 
 ```bash
 python3 scripts/eval_engine.py --task validation_01
+```
+
+Run a final task:
+
+```bash
+python3 scripts/eval_engine.py --track bio --task final_01
 ```
 
 Run a packaged submission zip:

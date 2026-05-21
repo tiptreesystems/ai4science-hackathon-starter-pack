@@ -1,0 +1,13 @@
+{
+  "evaluation_mode": "bio_thermostability_spearman",
+  "metric": "spearman",
+  "target": "target",
+  "baseline": 0.2902642232589529,
+  "ideal": 1.0,
+  "direction": "higher",
+  "baseline_description": "ESM2-t6-8M position-specific embedding plus one-hot mutation identity with ridge regression.",
+  "n_train": 1791,
+  "n_test": 1050,
+  "split": "protein_cold",
+  "source_problem": "bio_problems/thermostability"
+}

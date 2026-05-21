@@ -1,0 +1,86 @@
+{
+  "task_id": "materials_co2rr_descriptor_engineering",
+  "track": "materials",
+  "title": "CO\u2082RR Electrocatalysts \u2014 Descriptor Engineering for Faradaic Efficiency",
+  "problem_type": "feature_engineering_regression",
+  "metric": "r2",
+  "model": {
+    "estimator": "sklearn.ensemble.RandomForestRegressor",
+    "params": {
+      "n_estimators": 100,
+      "n_jobs": 1
+    },
+    "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "target_transform": "identity"
+  },
+  "target": {
+    "name": "fe_co",
+    "description": "Observed Faradaic efficiency to CO (fraction); used only by the scorer."
+  },
+  "input_files": {
+    "train": "data/train.csv",
+    "test": "data/test.csv"
+  },
+  "output": {
+    "files": [
+      "train_features.csv",
+      "test_features.csv"
+    ],
+    "format": "feature_matrix",
+    "key_column": "id",
+    "feature_columns": "Any number of finite-valued numeric columns; the two files must share the same feature columns in the same order."
+  },
+  "scoring": {
+    "program": "scoring",
+    "command": "python /app/program/score.py /app/input/res /app/input/ref /app/output",
+    "evaluation_mode": "hidden_reference_features",
+    "scores": [
+      {
+        "key": "score",
+        "title": "Score",
+        "sorting": "desc",
+        "primary": true
+      },
+      {
+        "key": "metric_value",
+        "title": "Mean R\u00b2",
+        "sorting": "desc"
+      },
+      {
+        "key": "improvement",
+        "title": "Improvement",
+        "sorting": "desc"
+      },
+      {
+        "key": "n_features",
+        "title": "Features",
+        "sorting": "asc"
+      }
+    ]
+  },
+  "feature_descriptions": {
+    "id": "Unique row identifier.",
+    "Ag": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Au": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Cd": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Cu": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Ga": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Hg": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "In": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Ni": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Pd": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Rh": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Sn": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Tl": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "Zn": "Per-row element loading; see task.md for the full element list and row-sum convention.",
+    "fe_co": "Observed Faradaic efficiency to CO (fraction); present in train rows only."
+  },
+  "domain_background": "Engineer chemical descriptors for metal-alloy electrocatalysts under CO\u2082 reduction conditions. The scorer fits a fixed RandomForestRegressor on your descriptors and rewards how much variance in Faradaic efficiency to CO your features explain on a held-out set of alloys.",
+  "allowed_external_resources": "Public materials-informatics, cheminformatics, and machine-learning libraries (scikit-learn, matminer, pymatgen, RDKit, ASE, etc.) and public reference data (atomic-property tables, Materials Project records, OQMD, etc.) are allowed. DFT is permitted in principle but too slow for the hackathon timeline; prefer classical force fields, pre-trained universal ML force fields (MACE-MP-0, CHGNet, M3GNet, ALIGNN-FF), and semi-empirical methods (g-xTB, GFN-xTB) for any first-principles-style descriptors. Do not use hidden reference files or external labels for these specific compositions."
+}

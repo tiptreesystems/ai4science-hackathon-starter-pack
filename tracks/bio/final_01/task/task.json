@@ -1,0 +1,57 @@
+{
+  "task_id": "bio_thermostability_delta_tm",
+  "track": "bio",
+  "title": "Protein Thermostability Mutation Prediction",
+  "problem_type": "regression",
+  "metric": "spearman",
+  "target": {
+    "name": "dTm",
+    "reference_column": "target",
+    "description": "Measured change in melting temperature in degrees C for a single-point mutation."
+  },
+  "input_files": {
+    "train": "data/train.csv",
+    "test": "data/test.csv"
+  },
+  "output": {
+    "file": "predictions.csv",
+    "columns": [
+      "id",
+      "prediction"
+    ]
+  },
+  "scoring": {
+    "program": "scoring",
+    "command": "python /app/program/score.py /app/input/res /app/input/ref /app/output",
+    "evaluation_mode": "hidden_reference_predictions",
+    "scores": [
+      {
+        "key": "score",
+        "title": "Score",
+        "sorting": "desc",
+        "primary": true
+      },
+      {
+        "key": "metric_value",
+        "title": "Spearman",
+        "sorting": "desc"
+      },
+      {
+        "key": "improvement",
+        "title": "Improvement",
+        "sorting": "desc"
+      }
+    ]
+  },
+  "feature_descriptions": {
+    "id": "Unique mutation identifier.",
+    "protein_id": "UniProt or PDB identifier for the wild-type protein.",
+    "sequence": "Wild-type amino-acid sequence in one-letter code.",
+    "position": "One-indexed residue position of the mutation.",
+    "wt_aa": "Wild-type amino acid at the mutation position.",
+    "mut_aa": "Mutant amino acid replacing wt_aa.",
+    "dTm": "Training label: change in melting temperature in degrees C."
+  },
+  "domain_background": "Protein-cold thermostability prediction. Test proteins are absent from training.",
+  "allowed_external_resources": "Use public scientific databases, package documentation, and pretrained protein models. Do not use hidden labels or scorer files."
+}
