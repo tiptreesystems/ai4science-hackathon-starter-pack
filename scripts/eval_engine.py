@@ -315,8 +315,19 @@ def run_scoring_container(
     prediction_dir: Path,
     score_dir: Path,
     log_path: Path,
+    pip_cache_dir: Path,
 ) -> int:
     name = f"ai4science-scoring-{task_packet.parent.name}-{task_packet.name}-{os.getpid()}"
+    pip_cache_dir.mkdir(parents=True, exist_ok=True)
+    scoring_command = (
+        "set -euo pipefail; "
+        "if [ -f /app/program/requirements.txt ]; then "
+        "python -m pip install --quiet --disable-pip-version-check "
+        "--target /tmp/ai4science-scoring-site -r /app/program/requirements.txt; "
+        "export PYTHONPATH=/tmp/ai4science-scoring-site${PYTHONPATH:+:$PYTHONPATH}; "
+        "fi; "
+        "python /app/program/score.py /app/input/res /app/input/ref /app/output"
+    )
     cmd = [
         "docker",
         "run",
@@ -335,6 +346,8 @@ def run_scoring_container(
         "PYTHONDONTWRITEBYTECODE=1",
         "--env",
         "PYTHONUNBUFFERED=1",
+        "--env",
+        "PIP_CACHE_DIR=/tmp/pip-cache",
         "--volume",
         f"{prediction_dir}:/app/input/res:ro",
         "--volume",
@@ -343,12 +356,12 @@ def run_scoring_container(
         f"{task_packet / 'scoring'}:/app/program:ro",
         "--volume",
         f"{score_dir}:/app/output:rw",
+        "--volume",
+        f"{pip_cache_dir}:/tmp/pip-cache:rw",
         image,
-        "python",
-        "/app/program/score.py",
-        "/app/input/res",
-        "/app/input/ref",
-        "/app/output",
+        "bash",
+        "-lc",
+        scoring_command,
     ]
     return run_logged(cmd, log_path, timeout, name)
 
@@ -402,18 +415,30 @@ def run_task(
             prediction_dir=output_dir,
             score_dir=score_dir,
             log_path=logs_dir / "scoring.log",
+            pip_cache_dir=work_dir / "_scoring_pip_cache",
         )
         scores_path = score_dir / "scores.json"
         if scores_path.is_file():
             scores = read_json(scores_path)
 
-    success = submission_status == 0 and outputs_present and scoring_status == 0
+    missing_outputs = [
+        rel_path for rel_path in expected_outputs if not (output_dir / rel_path).is_file()
+    ]
+    scoring_error_path = score_dir / "scoring_error.txt"
+    scoring_error = (
+        scoring_error_path.read_text(encoding="utf-8").strip()
+        if scoring_error_path.is_file()
+        else None
+    )
+    success = submission_status == 0 and not missing_outputs and scoring_status == 0 and scoring_error is None
     result = {
         "task": f"{track_name}/{task_name}",
         "expected_outputs": expected_outputs,
+        "missing_outputs": missing_outputs,
         "success": success,
         "submission_status": submission_status,
         "scoring_status": scoring_status,
+        "scoring_error": scoring_error,
         "scores": scores,
         "work_dir": str(task_work),
         "submission_log": str(logs_dir / "submission.log"),

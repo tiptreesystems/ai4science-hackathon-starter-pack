@@ -58,6 +58,8 @@ All released hackathon packets are included.
 Use the Docker eval engine before uploading. It runs the submission inside
 `python:3.11-slim`, with the task directory mounted read-only, then runs the
 task scorer against the generated output file or files declared by `task.json`.
+If a scorer declares `scoring/requirements.txt`, the engine installs those
+packages into the scoring container before running `score.py`.
 
 Requirements:
 
@@ -104,7 +106,9 @@ python3 scripts/eval_engine.py \
   --task train_01
 ```
 
-Run without network to check whether your submission is self-contained:
+Run without network to check whether your submission is self-contained. Tasks
+whose scorers declare extra Python requirements may still need the default
+networked mode so the local scoring container can install scorer dependencies.
 
 ```bash
 python3 scripts/eval_engine.py --task train_01 --network none
@@ -117,7 +121,9 @@ including `ANTHROPIC_API_KEY`, `ANTHROPIC_BASE_URL`, and `CLAUDE_MODEL`.
 
 Outputs, logs, and scores are written under `eval-runs/`, grouped by
 `track/task`. Check `logs/submission.log`, `logs/scoring.log`, and
-`result.json` when debugging.
+`result.json` when debugging. If the scorer writes `scoring_error.txt`, the
+local engine marks that task as unsuccessful and includes the error text in
+`result.json`.
 
 If a submission works there, it is using the same `run.sh` contract and base
 worker image expected by Codabench. The local engine is still a simulator:
