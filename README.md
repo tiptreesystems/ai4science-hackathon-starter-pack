@@ -115,9 +115,13 @@ python3 scripts/eval_engine.py --task train_01 --network none
 ```
 
 The default starter submission reads secrets from
-`starter-submission/.env.secrets`. The eval engine also passes common Claude
-and LiteLLM environment variables from your shell into the submission container,
-including `ANTHROPIC_API_KEY`, `ANTHROPIC_BASE_URL`, and `CLAUDE_MODEL`.
+`starter-submission/.env.secrets`. The hackathon LiteLLM gateway is no longer
+active, so configure Claude Code with a direct provider key such as
+`ANTHROPIC_API_KEY`. The eval engine passes common Claude settings from your
+shell into the submission container, including `ANTHROPIC_API_KEY` and
+`CLAUDE_MODEL`. If you operate your own Anthropic-compatible gateway, pass
+`ANTHROPIC_BASE_URL` explicitly with `--pass-env ANTHROPIC_BASE_URL` or place it
+in `.env.secrets`.
 
 Outputs, logs, and scores are written under `eval-runs/`, grouped by
 `track/task`. Check `logs/submission.log`, `logs/scoring.log`, and

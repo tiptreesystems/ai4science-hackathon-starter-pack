@@ -41,8 +41,11 @@ output directory.
 
 Expected environment:
 
-- `ANTHROPIC_API_KEY` available to Claude Code.
-- Optional `ANTHROPIC_BASE_URL` if using an Anthropic-compatible gateway.
+- `ANTHROPIC_API_KEY` available to Claude Code. The hackathon LiteLLM gateway is
+  no longer active, so use a direct provider key unless you operate your own
+  gateway.
+- Optional `ANTHROPIC_BASE_URL` only if using your own Anthropic-compatible
+  gateway.
 - Optional `.env.secrets` in this directory. `run.sh` sources it before starting
   the agent; use it for local API settings and do not put real keys in Git.
 - `claude` on `PATH`, or network access so `run.sh` can install Claude Code.
@@ -66,7 +69,8 @@ Useful overrides:
   directory.
 - `CLAUDE_CLI_BIN=/path/to/claude`: use a specific Claude Code binary.
 - `CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS=0`: re-enable Claude Code beta
-  headers if your endpoint supports them.
+  headers if your endpoint supports them. The default is `1` because some
+  Anthropic-compatible gateways reject those headers.
 - `CLAUDE_MODEL=...`: request a specific Claude model.
 - `CLAUDE_MAX_TURNS=30`: cap agent turns.
 - `CLAUDE_TIMEOUT_SECONDS=3000`: cap the headless agent call.
